@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Equidade de Poker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a clean look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Light gray background */
+            color: #333; /* Dark text for light mode */
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Dark mode styles */
+        body.dark-mode {
+            background-color: #1a202c; /* Dark background */
+            color: #f7fafc; /* Light text for dark mode */
+        }
+
+        .dark-mode .bg-white {
+            background-color: #2d3748; /* Darker background for cards/containers */
+        }
+
+        .dark-mode .text-gray-700 {
+            color: #a0aec0; /* Lighter text for labels in dark mode */
+        }
+
+        .dark-mode .text-gray-800 {
+            color: #d1d5db; /* Lighter text for results in dark mode */
+        }
+
+        .dark-mode .text-blue-800 {
+            color: #90cdf4; /* Lighter blue for headings in dark mode */
+        }
+
+        .dark-mode .text-blue-700 {
+            color: #66a7e8; /* Lighter blue for results highlight in dark mode */
+        }
+
+        .dark-mode .bg-blue-50 {
+            background-color: #4a5568; /* Darker blue background for results container */
+            border-color: #718096;
+        }
+
+        .dark-mode .border-blue-200 {
+            border-color: #718096;
+        }
+
+        .dark-mode .shadow-lg {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+        }
+
+        .dark-mode .shadow-sm {
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .dark-mode input.shadow-sm {
+            background-color: #4a5568;
+            color: #f7fafc;
+            border-color: #718096;
+        }
+
+        .dark-mode input.shadow-sm::placeholder {
+            color: #a0aec0;
+        }
+
+        .dark-mode input.shadow-sm:focus {
+            border-color: #90cdf4;
+            box-shadow: 0 0 0 0.2rem rgba(144, 205, 244, 0.25);
+        }
+
+        .dark-mode #errorMessage {
+            background-color: #742a2a;
+            border-color: #c53030;
+            color: #fbd2d2;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-md">
+        <div class="flex justify-end mb-4">
+            <button id="darkModeToggle" class="bg-gray-300 dark:bg-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 p-2 rounded-full focus:outline-none focus:shadow-outline transition duration-200 ease-in-out">
+                <!-- Moon Icon (initially hidden, visible in dark mode) -->
+                <img id="moonImage" src="http://googleusercontent.com/file_content/1" alt="Moon icon" class="w-6 h-6 hidden" onerror="this.onerror=null;this.src='https://placehold.co/24x24/000000/FFFFFF?text=Moon';"/>
+                <!-- Sun Icon (initially visible, hidden in dark mode) -->
+                <svg id="sunIcon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 18a6 6 0 100-12 6 6 0 000 12zM12 22a1 1 0 01-1-1v-2a1 1 0 012 0v2a1 1 0 01-1 1zM3 12a1 1 0 01-1-1V9a1 1 0 012 0v2a1 1 0 01-1 1zM21 12a1 1 0 01-1-1V9a1 1 0 012 0v2a1 1 0 01-1 1zM12 3a1 1 0 01-1-1V0a1 1 0 012 0v2a1 1 0 01-1 1zM5.636 18.364a1 1 0 01-.707-1.707l1.414-1.414a1 1 0 011.414 1.414l-1.414 1.414a1 1 0 01-.707.293zM18.364 5.636a1 1 0 01-.707-.293l-1.414-1.414a1 1 0 011.414-1.414l1.414 1.414a1 1 0 01-.707 1.707zM18.364 18.364a1 1 0 01-1.707.707l-1.414-1.414a1 1 0 011.414-1.414l1.414 1.414a1 1 0 01.293.707zM5.636 5.636a1 1 0 01-1.414-1.414l1.414-1.414a1 1 0 011.414 1.414l-1.414 1.414a1 1 0 01-.001.001z"></path>
+                </svg>
+            </button>
+        </div>
+        <h1 class="text-3xl font-bold text-center mb-6 text-gray-800">Calculadora de Equidade de Poker</h1>
+
+        <div class="mb-4">
+            <label for="totalPot" class="block text-gray-700 text-sm font-semibold mb-2">
+                Tamanho Total do Pote (BB):
+            </label>
+            <input type="number" id="totalPot" placeholder="Ex: 100"
+                   class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out">
+        </div>
+
+        <div class="mb-6">
+            <label for="callAmount" class="block text-gray-700 text-sm font-semibold mb-2">
+                Valor a Pagar (BB):
+            </label>
+            <input type="number" id="callAmount" placeholder="Ex: 10"
+                   class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out">
+        </div>
+
+        <button id="calculateBtn"
+                class="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transform transition duration-300 ease-in-out hover:scale-105 shadow-md">
+            Calcular Equidade
+        </button>
+
+        <div id="results" class="mt-8 p-5 bg-blue-50 rounded-xl border border-blue-200 hidden">
+            <h2 class="text-xl font-semibold text-blue-800 mb-3">Resultados:</h2>
+            <p class="text-gray-800 mb-2">
+                <span class="font-medium">Equidade Necessária:</span> <span id="requiredEquity" class="font-bold text-blue-700"></span>
+            </p>
+            <p class="text-gray-800 mb-2">
+                <span class="font-medium">Outs Necessárias (Flop - 2 cartas):</span> <span id="outsFlop" class="font-bold text-blue-700"></span>
+            </p>
+            <p class="text-gray-800">
+                <span class="font-medium">Outs Necessárias (Turn - 1 carta):</span> <span id="outsTurn" class="font-bold text-blue-700"></span>
+            </p>
+        </div>
+
+        <div id="errorMessage" class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg hidden" role="alert">
+            <p class="font-semibold">Erro:</p>
+            <p id="errorText"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const body = document.body;
+            const sunIcon = document.getElementById('sunIcon');
+            const moonImage = document.getElementById('moonImage'); // Changed from moonIcon to moonImage
+            const totalPotInput = document.getElementById('totalPot');
+            const callAmountInput = document.getElementById('callAmount');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const resultsDiv = document.getElementById('results');
+            const requiredEquitySpan = document.getElementById('requiredEquity');
+            const outsFlopSpan = document.getElementById('outsFlop');
+            const outsTurnSpan = document.getElementById('outsTurn');
+            const errorMessageDiv = document.getElementById('errorMessage');
+            const errorTextP = document.getElementById('errorText');
+
+            // Check for saved theme preference
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-mode');
+                sunIcon.classList.add('hidden');    // Hide sun icon
+                moonImage.classList.remove('hidden'); // Show moon image
+            } else {
+                sunIcon.classList.remove('hidden'); // Show sun icon
+                moonImage.classList.add('hidden');    // Hide moon image
+            }
+
+            darkModeToggle.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
+                const isDarkMode = body.classList.contains('dark-mode');
+                if (isDarkMode) {
+                    sunIcon.classList.add('hidden');
+                    moonImage.classList.remove('hidden');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    sunIcon.classList.remove('hidden');
+                    moonImage.classList.add('hidden');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+
+            calculateBtn.addEventListener('click', () => {
+                // Clear previous results and errors
+                resultsDiv.classList.add('hidden');
+                errorMessageDiv.classList.add('hidden');
+                errorTextP.textContent = '';
+
+                const totalPot = parseFloat(totalPotInput.value);
+                const callAmount = parseFloat(callAmountInput.value);
+
+                // Input validation
+                if (isNaN(totalPot) || isNaN(callAmount) || totalPot <= 0 || callAmount <= 0) {
+                    errorTextP.textContent = 'Por favor, insira valores numéricos positivos para o pote e o valor a pagar.';
+                    errorMessageDiv.classList.remove('hidden');
+                    return;
+                }
+                if (callAmount > totalPot) {
+                    errorTextP.textContent = 'O valor a pagar não pode ser maior que o pote total.';
+                    errorMessageDiv.classList.remove('hidden');
+                    return;
+                }
+
+                // Calculate Pot Odds
+                const potOdds = callAmount / (totalPot + callAmount);
+                const requiredEquity = potOdds * 100;
+
+                // Calculate Outs (Rule of 2 and 4)
+                // Assuming 50 unknown cards (52 total - 2 hole cards) for simplicity
+                // Flop: 2 cards to come (Turn and River), so approx 4% per out
+                // Turn: 1 card to come (River), so approx 2% per out
+                const outsNeededFlop = requiredEquity / 4;
+                const outsNeededTurn = requiredEquity / 2;
+
+                // Display results
+                requiredEquitySpan.textContent = `${requiredEquity.toFixed(2)}%`;
+                outsFlopSpan.textContent = `${outsNeededFlop.toFixed(1)} outs`;
+                outsTurnSpan.textContent = `${outsNeededTurn.toFixed(1)} outs`;
+                resultsDiv.classList.remove('hidden');
+            });
+        });
+    </script>
+</body>
+</html>
